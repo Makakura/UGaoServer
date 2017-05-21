@@ -8,7 +8,7 @@ Book =require('./models/book');
 app.set('port', (process.env.PORT || 5000));
 
 app.get('/', (req, res) => {
-	res.send('Please use /api/books or /api/genres');
+	res.send('Hello world');
 });
 app.get('/api/books', (req, res) => {
 	Book.getBooks((err, books) => {
