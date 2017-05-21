@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 Book =require('./models/book');
 // Connect to Mongoose
 
+app.set('port', (process.env.PORT || 5000));
 
 app.get('/', (req, res) => {
 	res.send('Please use /api/books or /api/genres');
@@ -61,5 +62,11 @@ app.delete('/api/messages/:_id', (req, res) => {
 	});
 });
 
-app.listen(3000);
-console.log('Running on port 3000...');
+// Run localy
+//app.listen(3000);
+//console.log('Running on port 3000...');
+
+// Run on server
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
+});
