@@ -10,8 +10,10 @@
   	"express":"*",
   	"body-parser":"*",
     "cors": "*",
-  	"mongoose":"*"
+  	"mongoose":"*",
+    "node-schedule":"*",
+    "express-basic-auth":"*"
   },
   "author": "Makakura",
-  "license": "2017"
+  "license": "ISC"
 }

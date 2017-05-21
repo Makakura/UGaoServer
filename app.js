@@ -5,12 +5,14 @@ const mongoose = require('mongoose');
 var cors = require('cors');
 var schedule = require('node-schedule');
 app.use(cors());
+//var basicAuth = require('express-basic-auth');
+//app.use(basicAuth( { authorizer: myAuthorizer } ))
 
-User =require('./model/user.js');
-Item =require('./model/item.js');
-Cart =require('./model/cart.js');
-Order =require('./model/order.js');
-Field=require('./model/field.js');
+
+User =require('./models/user.js');
+Item =require('./models/item.js');
+Cart =require('./models/cart.js');
+Order =require('./models/order.js');
 
 // ket noi toi mongoose
 //mongoose.connect('mongodb://localhost:27017/ugasdb')
@@ -19,16 +21,14 @@ mongoose.connection.on('connected', function (err) {
   console.log('Connected to DB');
 });
 var db = mongoose.connection;
-var basicAuth = require('express-basic-auth');
-app.use(basicAuth( { authorizer: myAuthorizer } ))
  
-function myAuthorizer(username, password) {
+/*function myAuthorizer(username, password) {
 	
     if(username==="abc" && password==="123"){
 		console.log(username);
 		return true;
 	}
-}
+}*/
 
 app.set('port', (process.env.PORT || 5000));
 
