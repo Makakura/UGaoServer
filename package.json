@@ -1,7 +1,7 @@
 {
-  "name": "bookstore",
+  "name": "UgaoServer",
   "version": "1.0.0",
-  "description": "Simple bookstore app",
+  "description": "UGaoServer",
   "main": "app.js",
   "scripts": {
     "start": "node app"
@@ -9,8 +9,9 @@
   "dependencies":{
   	"express":"*",
   	"body-parser":"*",
+    "cors": "*",
   	"mongoose":"*"
   },
-  "author": "Brad Traversy",
-  "license": "ISC"
+  "author": "Makakura",
+  "license": "2017"
 }
