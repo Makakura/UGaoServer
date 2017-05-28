@@ -5,8 +5,8 @@ const mongoose = require('mongoose');
 var cors = require('cors');
 var schedule = require('node-schedule');
 app.use(cors());
-//var basicAuth = require('express-basic-auth');
-//app.use(basicAuth( { authorizer: myAuthorizer } ))
+var basicAuth = require('express-basic-auth');
+app.use(basicAuth( { authorizer: myAuthorizer } ))
 
 
 User =require('./models/user.js');
@@ -22,18 +22,19 @@ mongoose.connection.on('connected', function (err) {
 });
 var db = mongoose.connection;
  
-/*function myAuthorizer(username, password) {
-	
-    if(username==="abc" && password==="123"){
+function myAuthorizer(username, password) {
+	console.log(username);
+	console.log(password);
+    if(username==="user" && password==="123456"){
 		console.log(username);
 		return true;
 	}
-}*/
+}
 
 app.set('port', (process.env.PORT || 5000));
 
 app.get('/', (req, res) => {
-	res.send('Hello world');
+	res.send('Hello pe hoa');
 });
 
 app.post('/api/hetgao', (req, res) => {
@@ -48,7 +49,6 @@ app.post('/api/congao', (req, res) => {
 	console.log("header: "+jsonString);
 	res.json(req.headers.authorization);
 });
-
 
 // User
 // Get all user
@@ -691,12 +691,6 @@ var j = schedule.scheduleJob('17 * * * *', function(){
 
   })
 });
-
-
-
-// Run localy
-//app.listen(3000);
-//console.log('Running on port 3000...');
 
 // Run on server
 app.listen(app.get('port'), function() {
