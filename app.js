@@ -42,12 +42,73 @@ app.post('/api/hetgao', (req, res) => {
 	console.log("Post Form ESP8266 Het Gao");	
 	console.log("header: "+jsonString);
 	res.json(req.headers.authorization);
+
+	var requestify = require('requestify');
+	requestify.request('https://fcm.googleapis.com/fcm/send', {
+		method: 'POST',
+		body: {
+			'notification':{
+				'title':'UGao', 
+				'body':'Bạn sắp hết gạo, click để đặt gạo ngay',   
+				'sound':'default',  
+				'click_action':'FCM_PLUGIN_ACTIVITY',   
+				'icon':'fcm_push_icon'   
+			},
+			'data':{
+				'type': '2', // hết gạo reminder
+			},
+				'to': '/topics/client',
+				'priority':'high',  
+				'restricted_package_name':''  
+		},
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+		},
+		dataType: 'json'        
+	})
+	.then(function(response) {
+		console.log(JSON.stringify(response));
+	});
 });
 app.post('/api/congao', (req, res) => {
 	var jsonString = req.headers.authorization;
 	console.log("Post Form ESP8266 Con Gao");	
 	console.log("header: "+jsonString);
 	res.json(req.headers.authorization);
+
+	var jsonString = req.headers.authorization;
+	console.log("Post Form ESP8266 Het Gao");	
+	console.log("header: "+jsonString);
+	res.json(req.headers.authorization);
+
+	var requestify = require('requestify');
+	requestify.request('https://fcm.googleapis.com/fcm/send', {
+		method: 'POST',
+		body: {
+			'notification':{
+				'title':'UGao', 
+				'body':'Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của UGao',   
+				'sound':'default',  
+				'click_action':'FCM_PLUGIN_ACTIVITY',   
+				'icon':'fcm_push_icon'   
+			},
+			'data':{
+				'type': '3', // hết gạo reminder
+			},
+				'to': '/topics/client',
+				'priority':'high',  
+				'restricted_package_name':''  
+		},
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+		},
+		dataType: 'json'        
+	})
+	.then(function(response) {
+		console.log(JSON.stringify(response));
+	});
 });
 
 // User
