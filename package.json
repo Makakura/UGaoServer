@@ -12,7 +12,8 @@
     "cors": "*",
   	"mongoose":"*",
     "node-schedule":"*",
-    "express-basic-auth":"*"
+    "express-basic-auth":"*",
+    "requestify": "*"
   },
   "author": "Makakura",
   "license": "ISC"
