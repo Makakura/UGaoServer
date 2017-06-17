@@ -9,7 +9,8 @@ var itemSchema = mongoose.Schema({
     image:  String,
     name:  String,
     price: Number,
-    stock: Number
+    stock: Number,
+    isDeleteFlag: Boolean
 });
 
 var Item = module.exports = mongoose.model('Item', itemSchema);

@@ -13,6 +13,7 @@ User =require('./models/user.js');
 Item =require('./models/item.js');
 Cart =require('./models/cart.js');
 Order =require('./models/order.js');
+Feedback =require('./models/feedback.js');
 
 // ket noi toi mongoose
 //mongoose.connect('mongodb://localhost:27017/ugasdb')
@@ -216,6 +217,7 @@ app.put('/api/items/:_id', function(req, res){
 			});
         });
 });
+
 // Cart
 //Get all cart
 app.get('/api/carts', function(req, res){
@@ -734,6 +736,50 @@ app.get('/api/getshipperdatareport/:_id',function(req,res){
 		
 	});
 })
+// Feedback
+//Get all Feedback
+app.get('/api/feedbacks', function(req, res){
+	Feedback.getFeedbacks(function(err, feedbacks){
+		if(err){
+			throw err;
+		}
+		res.json(feedbacks);
+	});
+});
+//Add Feedback
+app.post('/api/feedbacks',function (req, res, next) {
+ var jsonString = '';
+        req.on('data', function (data) {
+            jsonString += data;
+        });
+        req.on('end', function () {
+			var feedback = JSON.parse(jsonString)
+			Feedback.addFeedback(feedback, function(err, feedback){
+				if(err){
+					throw err;
+				}
+				res.json(feedback);
+			});
+        });
+});
+//Remove feedback
+app.put('/api/feedbacks/:_id', function(req, res){
+	var jsonString = '';
+        req.on('data', function (data) {
+            jsonString += data;
+        });
+        req.on('end', function () {
+			var id = req.params._id;
+			Feedback.removeFeedback(id, null, {}, function(err, feedback){
+				if(err){
+					throw err;
+				}
+				res.json(feedback);
+			});
+        });
+});
+
+
 var j = schedule.scheduleJob('17 * * * *', function(){
   console.log('The answer to life, the universe, and everything!');
   User.getUsers(function(err,users){

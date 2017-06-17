@@ -12,7 +12,8 @@ var orderSchema = mongoose.Schema({
     Address: String,
 	Note: String,
 	OrderDate: Date,
-    OrderSuccessDate: Date
+    OrderSuccessDate: Date,
+    isDeleteFlag: Boolean
 });
 
 var Order = module.exports = mongoose.model('Order', orderSchema);
