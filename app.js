@@ -746,7 +746,7 @@ app.get('/api/feedbacks', function(req, res){
 		res.json(feedbacks);
 	});
 });
-//Add Feedback
+//Add Feedback alo
 app.post('/api/feedbacks',function (req, res, next) {
  var jsonString = '';
         req.on('data', function (data) {
