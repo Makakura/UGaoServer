@@ -6,7 +6,7 @@ var cors = require('cors');
 var schedule = require('node-schedule');
 app.use(cors());
 var basicAuth = require('express-basic-auth');
-//app.use(basicAuth( { authorizer: myAuthorizer } ))
+app.use(basicAuth( { authorizer: myAuthorizer } ))
 
 
 User =require('./models/user.js');
