@@ -6,7 +6,7 @@ var cors = require('cors');
 var schedule = require('node-schedule');
 app.use(cors());
 var basicAuth = require('express-basic-auth');
-app.use(basicAuth( { authorizer: myAuthorizer } ))
+//app.use(basicAuth( { authorizer: myAuthorizer } ))
 
 
 User =require('./models/user.js');
@@ -40,6 +40,7 @@ app.get('/', (req, res) => {
 
 app.post('/api/hetgao', (req, res) => {
 	var requestify = require('requestify');
+	Feedback.addFeedback({catalogue: 'ESP8266', contain: "Het gao"}, null);
 	requestify.request('https://fcm.googleapis.com/fcm/send', {
 		method: 'POST',
 		body: {
@@ -73,6 +74,7 @@ app.post('/api/hetgao', (req, res) => {
 });
 app.post('/api/congao', (req, res) => {
 		// Push Nor
+	Feedback.addFeedback({catalogue: 'ESP8266', contain: "Con gao"}, null);
 	var requestify = require('requestify');
 	requestify.request('https://fcm.googleapis.com/fcm/send', {
 		method: 'POST',
