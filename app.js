@@ -39,7 +39,6 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/hetgao', (req, res) => {
-	// Push Nor
 	var requestify = require('requestify');
 	requestify.request('https://fcm.googleapis.com/fcm/send', {
 		method: 'POST',
@@ -104,6 +103,7 @@ app.post('/api/congao', (req, res) => {
 		console.log(JSON.stringify(response));
 	});
 	// End push nor
+	res.json(req.headers.authorization); 
 });
 
 // User
