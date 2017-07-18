@@ -31,7 +31,7 @@ module.exports.getStaffs = function(callback, limit){
 module.exports.getUserByUserName = function(userName, callback){
 	User.findOne({UserName:userName}, callback);
 };
-// Get User by user id
+// Get User by user name
 module.exports.getUserById = function(id, callback){
 	User.findById(id, callback);
 }

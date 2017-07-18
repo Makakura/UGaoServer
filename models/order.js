@@ -13,7 +13,7 @@ var orderSchema = mongoose.Schema({
 	Note: String,
 	OrderDate: Date,
     OrderSuccessDate: Date,
-    isDeleteFlag: Boolean
+	
 });
 
 var Order = module.exports = mongoose.model('Order', orderSchema);
@@ -75,12 +75,25 @@ module.exports.updateOrderStatus = function(id, order, options, callback){
 	var query = {_id: id};
 	var myDate=new Date();
 	var inputDate = new Date(myDate.toISOString());
-	console.log(myDate+" "+inputDate);
+	//console.log(myDate+" "+inputDate);
 	var update = {
-        Status: order.Status,
-		Shipper:order.Shipper,
-		OrderSuccessDate: inputDate
+			Status: order.Status
+		}
+	if(order.Status==3){	
+		update = {
+			Status: order.Status,
+			Shipper:order.Shipper,
+			OrderSuccessDate: inputDate
+		}
 	}
+	if(order.Status==4){
+		update = {
+			Status: order.Status,
+			Shipper:order.Shipper,
+			OrderSuccessDate: inputDate
+		}
+	}
+	console.log(update);
 	Order.findOneAndUpdate(query, update, options, callback);
 }
 // Update Order
@@ -100,7 +113,8 @@ module.exports.updateOrder = function(id, order, options, callback){
 		Address: order.Address,
 		Note: order.Note,
 		OrderDate: order.OrderDate,
-        OrderSuccessDate: order.OrderSuccessDate
+        OrderSuccessDate: order.OrderSuccessDate,
+		ItemChange:order.ItemChange,
 	}
 	Order.findOneAndUpdate(query, update, options, callback);
 }
@@ -157,5 +171,8 @@ module.exports.getOrderByCurrentMonth=function(callback){
 	endDay.setSeconds(59);
 	endDay.setDate(31);
 	Order.find({OrderDate: {$gte: beginDay,$lte:endDay }},callback);
+}
+module.exports.getUserWaitingOrder=function(userID,callback){
+	Order.find({OwnerId: userID,Status: 1}, callback);
 }
 

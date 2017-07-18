@@ -4,7 +4,8 @@ var Schema = mongoose.Schema;
 var cartSchema = mongoose.Schema({
     OwnerId: String,
     OrderDetails: { type : Array , "default" : [] },
-    Total: Number
+    Total: Number,
+	ItemChange: Boolean
 });
 
 var Cart = module.exports = mongoose.model('Cart', cartSchema);
@@ -28,6 +29,7 @@ module.exports.updateCart = function(id, cart, options, callback){
 		OwnerId: cart.OwnerId,
 		OrderDetails: cart.OrderDetails,
 		Total: cart.Total,
+		ItemChange: cart.ItemChange
 	}
 	Cart.findOneAndUpdate(query, update, options, callback);
 }
