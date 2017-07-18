@@ -6,9 +6,7 @@ var cors = require('cors');
 var schedule = require('node-schedule');
 app.use(cors());
 var basicAuth = require('express-basic-auth');
-//app.use(basicAuth( { authorizer: myAuthorizer } ))
-
-
+app.use(basicAuth( { authorizer: myAuthorizer } ));
 User =require('./models/user.js');
 Item =require('./models/item.js');
 Cart =require('./models/cart.js');
@@ -107,13 +105,12 @@ app.post('/api/congao', (req, res) => {
 	// End push nor
 	res.json(req.headers.authorization); 
 });
-
 // User
 // Get all user
 app.get('/api/users', function(req, res){
 	User.getUsers(function(err, users){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(users);
 	});
@@ -122,7 +119,7 @@ app.get('/api/users', function(req, res){
 app.get('/api/staffs', function(req, res){
 	User.getStaffs(function(err, users){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(users);
 	});
@@ -131,7 +128,15 @@ app.get('/api/staffs', function(req, res){
 app.get('/api/users/:_id', function(req, res){
 	User.getUserByUserName(req.params._id, function(err, user){
 		if(err){
-			throw err;
+			res.status(500).send('err');
+		}
+		res.json(user);
+	});
+});
+app.get('/api/userId/:_id', function(req, res){
+	User.getUserById(req.params._id, function(err, user){
+		if(err){
+			res.status(500).send('err');
 		}
 		res.json(user);
 	});
@@ -152,7 +157,7 @@ app.post('/api/users', function(req, res){
 			user.PushToken = "";
 			User.addUser(user, function(err, user){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(user);
 			});
@@ -171,22 +176,25 @@ app.put('/api/users/:_id', function(req, res){
 			
 			User.updateUser(id, user, {}, function(err, user){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(user);
 			});
         });
 });
+
+
 // Item
 //Get all item
 app.get('/api/items', function(req, res){
 	Item.getItems(function(err, items){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(items);
 	});
 });
+//insert new item
 app.post('/api/items',function (req, res, next) {
  var jsonString = '';
         req.on('data', function (data) {
@@ -196,7 +204,7 @@ app.post('/api/items',function (req, res, next) {
 			var item = JSON.parse(jsonString)
 			Item.addItem(item, function(err, item){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(item);
 			});
@@ -210,22 +218,52 @@ app.put('/api/items/:_id', function(req, res){
         });
         req.on('end', function () {
 			var id = req.params._id;
-			var item = JSON.parse(jsonString)
-			Item.updateItem(id, item, {}, function(err, item){
+			var postedItem = JSON.parse(jsonString)
+			console.log("item input");
+			console.log(postedItem);
+			Item.updateItem(id, postedItem, {}, function(err, item){
 				if(err){
-					throw err;
+					res.status(500).send({ error: "Lỗi khi cập nhập thông tin sản phẩm." });
 				}
+
+				Cart.getCarts( function(err, carts){
+					if(err){
+						res.status(500).send({ error: err });
+					}
+					carts.forEach(function(cart,index){
+						if(cart.OrderDetails.length>0){
+							cart.OrderDetails.forEach(function(detail,i){
+								if(detail.Item._id==id){
+									console.log(detail.Item.name);
+									cart.Total=cart.Total-(detail.kilogramType*detail.numOfKilogramType*detail.Item.price);
+									cart.Total=cart.Total+(detail.kilogramType*detail.numOfKilogramType*postedItem.price);
+									postedItem.price=parseInt(postedItem.price);
+									detail.Item=postedItem;
+									console.log(detail.Item);
+									cart.ItemChange=true;
+								}
+							});
+							Cart.updateCart(cart._id, cart, {}, function(err, cart){
+								if(err){
+									console.log(err);
+									res.status(500).send({ error: "Lỗi khi cập nhập thông tin sản phẩm trong giỏ hàng người tiêu dùng." });
+								}
+							});
+						}
+					});
+				});
 				res.json(item);
 			});
         });
 });
 
-// Cart
+
+// Cart Apis
 //Get all cart
 app.get('/api/carts', function(req, res){
 	Cart.getCarts(function(err, carts){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(carts);
 	});
@@ -234,7 +272,7 @@ app.get('/api/carts', function(req, res){
 app.get('/api/carts/:_id', function(req, res){
 	Cart.getCartByUserId(req.params._id, function(err, cart){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(cart);
 	});
@@ -247,9 +285,10 @@ app.post('/api/carts', function(req, res){
         });
         req.on('end', function () {
 			var cart = JSON.parse(jsonString);
+			console.log(cart);
 			Cart.addCart(cart, function(err, cart){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(cart);
 			});
@@ -267,30 +306,30 @@ app.put('/api/carts/:_id', function(req, res){
 			var cart = JSON.parse(jsonString)
 			Cart.updateCart(id, cart, {}, function(err, cart){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(cart);
 			});
         });
 });
-// Order
-//Get all order
+
+
+// Order Apis
 app.get('/api/orders', function(req, res){
 	Order.getOrders(function(err, posts){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(posts);
 	});
 });
-// get order 1 by user or 2 by shipperId 3 by confirmed
 app.get('/api/orders/:_flag/:value', function(req, res){
 	var flag = req.params._flag;
 	var value= req.params.value;
 	if(flag==1){
 		Order.getOrderByUserId(value, function(err, orders){
 			if(err){
-				throw err;
+				res.status(500).send('err');
 			}
 			res.json(orders);
 		});
@@ -298,7 +337,7 @@ app.get('/api/orders/:_flag/:value', function(req, res){
 	else if(flag==2){
 		Order.getOrderByShipperId(value, function(err, orders){
 			if(err){
-				throw err;
+				res.status(500).send('err');
 			}
 			res.json(orders);
 		});
@@ -306,23 +345,21 @@ app.get('/api/orders/:_flag/:value', function(req, res){
 	else if(flag==3){
 		Order.getOrderByStatus(value, function(err, orders){
 			if(err){
-				throw err;
+				res.status(500).send('err');
 			}
 			res.json(orders);
 		});
 	}
-	else throw err;
+	else res.status(500).send('err');
 });
-// get order by id
 app.get('/api/orders/:_id', function(req, res){
 	Order.getOrderById(req.params._id, function(err, order){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(order);
 	});
 });
-// add new order
 app.post('/api/orders', function(req, res){
 	var jsonString = '';
         req.on('data', function (data) {
@@ -330,46 +367,56 @@ app.post('/api/orders', function(req, res){
         });
         req.on('end', function () {
 			var order = JSON.parse(jsonString);
-			Order.addOrder(order, function(err, order){
-				if(err){
-					throw err;
+			Order.getUserWaitingOrder(order.OwnerId,function(err,orders){
+				if(orders.length>1){
+					console.log(orders.length);
+					
+					res.status(400).send({ error: "Bạn vẫn còn "+orders.length+" đơn hàng đang chờ, vui lòng đợi các đơn hàng trước được xác nhận" });
+					//res.json({'err':"Bạn vẫn còn đơn hàng đang chờ, vui lòng đợi các đơn hàng trước được xác nhận" });
 				}
-				res.json(order);
-				// Push Nor
-				var requestify = require('requestify');
-				requestify.request('https://fcm.googleapis.com/fcm/send', {
-					method: 'POST',
-					body: {
-						'notification':{
-							'title':'Thông báo', 
-							'body':'Có đơn hang mới',   
-							'sound':'default',  
-							'click_action':'FCM_PLUGIN_ACTIVITY',   
-							'icon':'fcm_push_icon'   
-						},
-						'data':{
-							'type': '1',
-							'id':order._id,
-						},
-							'to':'/topics/host', 
-							'priority':'high',  
-							'restricted_package_name':''  
-					},
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-					},
-					dataType: 'json'        
-				})
-				.then(function(response) {
-					console.log(JSON.stringify(response));
-				});
-				// End push nor
-			});
+				else{
+					Order.addOrder(order, function(err, order){
+						if(err){
+							res.status(500).send('err');
+						}
+						res.json(order);
+						// Push Nor
+						var requestify = require('requestify');
+						requestify.request('https://fcm.googleapis.com/fcm/send', {
+							method: 'POST',
+							body: {
+								'notification':{
+									'title':'Thông báo', 
+									'body':'Có đơn hang mới',   
+									'sound':'default',  
+									'click_action':'FCM_PLUGIN_ACTIVITY',   
+									'icon':'fcm_push_icon'   
+								},
+								'data':{
+									'type': '1',
+									'id':order._id,
+								},
+									'to':'/topics/host', 
+									'priority':'high',  
+									'restricted_package_name':''  
+							},
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+							},
+							dataType: 'json'        
+						})
+						.then(function(response) {
+							console.log(JSON.stringify(response));
+						});
+						// End push nor
+					});
+				}
+			})
+			
         });
 	
 });
-//update order
 app.put('/api/orders/:_id', function(req, res){
 	var jsonString = '';
         req.on('data', function (data) {
@@ -382,45 +429,48 @@ app.put('/api/orders/:_id', function(req, res){
 			var pushToken = "";
 			Order.updateOrderStatus(id, orderTemp, {}, function(err, orderTemp){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(orderTemp);
 			});
 			if(orderTemp.Status ==3){
-				User.getUserById(orderTemp.OwnerId, function(err, user){
-					pushToken=user.PushToken;
-					console.log(pushToken);
-					// Push Nor
-					var requestify = require('requestify');
-					requestify.request('https://fcm.googleapis.com/fcm/send', {
-						method: 'POST',
-						body: {
-							'notification':{
-								'title':'Thông báo', 
-								'body':'Gas của bạn đang được chuyển đi, sẽ tới trong vòng 30 phút, nhớ giữ liên lạc nha ;)',   
-								'sound':'default',  
-								'click_action':'FCM_PLUGIN_ACTIVITY',   
-								'icon':'fcm_push_icon'   
+				if(orderTemp.OwnerId!="Default_User"){
+					User.getUserById(orderTemp.OwnerId, function(err, user){
+						pushToken=user.PushToken;
+						console.log(pushToken);
+						// Push Nor
+						var requestify = require('requestify');
+						requestify.request('https://fcm.googleapis.com/fcm/send', {
+							method: 'POST',
+							body: {
+								'notification':{
+									'title':'Thông báo', 
+									'body':'Gạo của bạn đang được chuyển đi, sẽ tới trong vòng 30 phút, nhớ giữ liên lạc nha;',   
+									'sound':'default',  
+									'click_action':'FCM_PLUGIN_ACTIVITY',   
+									'icon':'fcm_push_icon'   
+								},
+								'data':{
+									'type': '1',
+									'id':orderTemp._id,
+								},
+									'to': pushToken, 
+									'priority':'high',  
+									'restricted_package_name':''  
 							},
-							'data':{
-								'type': '1',
-								'id':orderTemp._id,
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
 							},
-								'to': pushToken, 
-								'priority':'high',  
-								'restricted_package_name':''  
-						},
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-						},
-						dataType: 'json'        
-					})
-					.then(function(response) {
-						console.log(JSON.stringify(response));
-					});
+							dataType: 'json'        
+						})
+						.then(function(response) {
+							console.log(JSON.stringify(response));
+						});
 					// End push nor
-				});
+					});
+				}
+				
 				
 			}
 			else  if(orderTemp.Status == 2){
@@ -455,40 +505,43 @@ app.put('/api/orders/:_id', function(req, res){
 				});
 			}
 			else if(orderTemp.Status == 0){
-				User.getUserById(orderTemp.OwnerId, function(err, user){
-					pushToken=user.PushToken;
-					console.log(pushToken);
-					// Push Nor
-					var requestify = require('requestify');
-					requestify.request('https://fcm.googleapis.com/fcm/send', {
-						method: 'POST',
-						body: {
-							'notification':{
-								'title':'Thông báo', 
-								'body':'Đơn hàng của bạn đã bị hủy, liên hệ 01649051057 để được hỗ trợ!',   
-								'sound':'default',  
-								'click_action':'FCM_PLUGIN_ACTIVITY',   
-								'icon':'fcm_push_icon'   
+				if(orderTemp.OwnerId!="Default_User"){
+					User.getUserById(orderTemp.OwnerId, function(err, user){
+						pushToken=user.PushToken;
+						console.log(pushToken);
+						// Push Nor
+						var requestify = require('requestify');
+						requestify.request('https://fcm.googleapis.com/fcm/send', {
+							method: 'POST',
+							body: {
+								'notification':{
+									'title':'Thông báo', 
+									'body':'Đơn hàng của bạn đã bị hủy, liên hệ 01649051057 để được hỗ trợ!',   
+									'sound':'default',  
+									'click_action':'FCM_PLUGIN_ACTIVITY',   
+									'icon':'fcm_push_icon'   
+								},
+								'data':{
+									'type': '1',
+									'id':orderTemp._id,
+								},
+									'to': pushToken, 
+									'priority':'high',  
+									'restricted_package_name':''  
 							},
-							'data':{
-								'type': '1',
-								'id':orderTemp._id,
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
 							},
-								'to': pushToken, 
-								'priority':'high',  
-								'restricted_package_name':''  
-						},
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-						},
-						dataType: 'json'        
-					})
-					.then(function(response) {
-						console.log(JSON.stringify(response));
-					});
+							dataType: 'json'        
+						})
+						.then(function(response) {
+							console.log(JSON.stringify(response));
+						});
 					// End push nor
-				});
+					});
+				}
+				
 				
 			}
         });
@@ -496,7 +549,7 @@ app.put('/api/orders/:_id', function(req, res){
 app.get('/api/ordersbyIDate/:_id', function(req, res){
 	Order.getOrderByShipperIdInCurrentDay(req.params._id, function(err, order){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(order);
 	});
@@ -504,7 +557,7 @@ app.get('/api/ordersbyIDate/:_id', function(req, res){
 app.get('/api/GetOrderByDay', function(req, res){
 	Order.getOrderByDay(function(err, orders){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(orders);
 	});
@@ -517,132 +570,152 @@ app.put('/api/ordersStatus/:_id', function(req, res){
         req.on('end', function () {
 			var id = req.params._id;
 			var orderTemp = JSON.parse(jsonString);
-			console.log(orderTemp.Status);
+			
 			var pushToken = "";
-			Order.updateOrderStatus(id, orderTemp, {}, function(err, orderTemp){
+			Order.getOrderById(req.params._id, function(err, orderWillUpdate){
 				if(err){
-					throw err;
+					 res.status(500).send('err');
 				}
-				res.json(orderTemp);
+				console.log(orderTemp.Status+"----"+orderWillUpdate.Status);
+				if(orderWillUpdate.Status!=orderTemp.Status){
+					Order.updateOrderStatus(id, orderTemp, {}, function(err, orderTemp){
+						if(err){
+							res.status(500).send('err');
+						}
+						res.json(orderTemp);
+					});
+					if(orderTemp.Status ==3){
+						if(orderTemp.OwnerId!="Default_User"){
+							User.getUserById(orderTemp.OwnerId, function(err, user){
+								pushToken=user.PushToken;
+								console.log(pushToken);
+								// Push Nor
+								var requestify = require('requestify');
+								requestify.request('https://fcm.googleapis.com/fcm/send', {
+									method: 'POST',
+									body: {
+										'notification':{
+											'title':'Thông báo', 
+											'body':'Gạo của bạn đang được chuyển đi, sẽ tới trong vòng 30 phút, nhớ giữ liên lạc nha ;)',   
+											'sound':'default',  
+											'click_action':'FCM_PLUGIN_ACTIVITY',   
+											'icon':'fcm_push_icon'   
+										},
+										'data':{
+											'type': '1',
+											'id':orderTemp._id,
+										},
+											'to': pushToken, 
+											'priority':'high',  
+											'restricted_package_name':''  
+									},
+									headers: {
+										'Content-Type': 'application/json',
+										'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+									},
+									dataType: 'json'        
+								})
+								.then(function(response) {
+									console.log(JSON.stringify(response));
+								});
+								// End push nor
+							});
+						}
+						
+						
+					}
+					else  if(orderTemp.Status == 2){
+						console.log("push nor to deliver");
+						var requestify = require('requestify');
+						requestify.request('https://fcm.googleapis.com/fcm/send', {
+							method: 'POST',
+							body: {
+								'notification':{
+									'title':'Thông báo', 
+									'body':'Có đơn hàng mới cần chuyển đi',   
+									'sound':'default',  
+									'click_action':'FCM_PLUGIN_ACTIVITY',   
+									'icon':'fcm_push_icon'   
+								},
+								'data':{
+									'type': '1',
+									'id':orderTemp._id,
+								},
+									'to': '/topics/shipper',
+									'priority':'high',  
+									'restricted_package_name':''  
+							},
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+							},
+							dataType: 'json'        
+						})
+						.then(function(response) {
+							console.log(JSON.stringify(response));
+						});
+					}
+					else if(orderTemp.Status == 0){
+						if(orderTemp.OwnerId!="Default_User"){
+							User.getUserById(orderTemp.OwnerId, function(err, user){
+								pushToken=user.PushToken;
+								console.log(pushToken);
+								// Push Nor
+								var requestify = require('requestify');
+								requestify.request('https://fcm.googleapis.com/fcm/send', {
+									method: 'POST',
+									body: {
+										'notification':{
+											'title':'Thông báo', 
+											'body':'Đơn hàng của bạn đã bị hủy, liên hệ đại lý để được hỗ trợ!',   
+											'sound':'default',  
+											'click_action':'FCM_PLUGIN_ACTIVITY',   
+											'icon':'fcm_push_icon'   
+										},
+										'data':{
+											'type': '1',
+											'id':orderTemp._id,
+										},
+											'to': pushToken, 
+											'priority':'high',  
+											'restricted_package_name':''  
+									},
+									headers: {
+										'Content-Type': 'application/json',
+										'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
+									},
+									dataType: 'json'        
+								})
+								.then(function(response) {
+									console.log(JSON.stringify(response));
+								});
+								// End push nor
+							});
+						}
+						
+						
+					}
+				}
+				else{
+					res.status(400).send('Order have changed');
+				}
 			});
-			if(orderTemp.Status ==3){
-				User.getUserById(orderTemp.OwnerId, function(err, user){
-					pushToken=user.PushToken;
-					console.log(pushToken);
-					// Push Nor
-					var requestify = require('requestify');
-					requestify.request('https://fcm.googleapis.com/fcm/send', {
-						method: 'POST',
-						body: {
-							'notification':{
-								'title':'Thông báo', 
-								'body':'Gas của bạn đang được chuyển đi, sẽ tới trong vòng 30 phút, nhớ giữ liên lạc nha ;)',   
-								'sound':'default',  
-								'click_action':'FCM_PLUGIN_ACTIVITY',   
-								'icon':'fcm_push_icon'   
-							},
-							'data':{
-								'type': '1',
-								'id':orderTemp._id,
-							},
-								'to': pushToken, 
-								'priority':'high',  
-								'restricted_package_name':''  
-						},
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-						},
-						dataType: 'json'        
-					})
-					.then(function(response) {
-						console.log(JSON.stringify(response));
-					});
-					// End push nor
-				});
-				
-			}
-			else  if(orderTemp.Status == 2){
-				console.log("push nor to deliver");
-				var requestify = require('requestify');
-				requestify.request('https://fcm.googleapis.com/fcm/send', {
-					method: 'POST',
-					body: {
-						'notification':{
-							'title':'Thông báo', 
-							'body':'Có đơn hàng mới cần chuyển đi',   
-							'sound':'default',  
-							'click_action':'FCM_PLUGIN_ACTIVITY',   
-							'icon':'fcm_push_icon'   
-						},
-						'data':{
-							'type': '1',
-							'id':orderTemp._id,
-						},
-							'to': '/topics/shipper',
-							'priority':'high',  
-							'restricted_package_name':''  
-					},
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-					},
-					dataType: 'json'        
-				})
-				.then(function(response) {
-					console.log(JSON.stringify(response));
-				});
-			}
-			else if(orderTemp.Status == 0){
-				User.getUserById(orderTemp.OwnerId, function(err, user){
-					pushToken=user.PushToken;
-					console.log(pushToken);
-					// Push Nor
-					var requestify = require('requestify');
-					requestify.request('https://fcm.googleapis.com/fcm/send', {
-						method: 'POST',
-						body: {
-							'notification':{
-								'title':'Thông báo', 
-								'body':'Đơn hàng của bạn đã bị hủy, liên hệ 01649051057 để được hỗ trợ!',   
-								'sound':'default',  
-								'click_action':'FCM_PLUGIN_ACTIVITY',   
-								'icon':'fcm_push_icon'   
-							},
-							'data':{
-								'type': '1',
-								'id':orderTemp._id,
-							},
-								'to': pushToken, 
-								'priority':'high',  
-								'restricted_package_name':''  
-						},
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'key=AIzaSyAglKU9k9G4W8TZmo5N9DmLslQdaMsm1G8'
-						},
-						dataType: 'json'        
-					})
-					.then(function(response) {
-						console.log(JSON.stringify(response));
-					});
-					// End push nor
-				});
-				
-			}
+			
         });
 
 });
-// xoa order
 app.delete('/api/orders/:_id', function(req, res){
 	var id = req.params._id;
 	Order.removeOrder(id, function(err, order){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(order);
 	});
 });
+
+
+//Report Apis
 app.get('/api/GetReportData',function(req,res){
 	var numofWaitingOrder=0;
 	var numOfOrder=0;
@@ -650,7 +723,7 @@ app.get('/api/GetReportData',function(req,res){
 	var totalMoneyInDay=0;
 	Order.getOrderByDay(function(err,orders){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		numOfOrder=orders.length;
 		console.log(orders.length);
@@ -660,7 +733,7 @@ app.get('/api/GetReportData',function(req,res){
 			});		
 		Order.getSuccessOrderByDay(function(err,successOrders){
 			if(err){
-				throw err;
+				res.status(500).send('err');
 			}
 			successOrders.forEach(function(item){
 				totalMoneyInDay+=item.Total;
@@ -669,7 +742,7 @@ app.get('/api/GetReportData',function(req,res){
 			console.log(totalMoneyInDay);
 			Order.getOrderByCurrentMonth(function(err, ordersData){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				//console.log(ordersData);			
 				res.json({'numofWaitingOrder':numofWaitingOrder,
@@ -686,7 +759,7 @@ app.get('/api/GetReportData',function(req,res){
 app.get('/api/GetReportDataInMonth',function(req,res){
 	Order.getOrderByCurrentMonth(function(err, order){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(order);
 	});
@@ -703,7 +776,7 @@ app.get('/api/getshipperdatareport/:_id',function(req,res){
 	console.log(req.params);
 	Order.getOrderByShipperIdInMonth(req.params._id, function(err, orderInMonth){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		orderInMonth.forEach(function(item, index){
 			if(item.Status===4){
@@ -716,6 +789,7 @@ app.get('/api/getshipperdatareport/:_id',function(req,res){
 		});
 		Order.getOrderByShipperIdInCurrentDay(req.params._id, function(err, orderInDay){
 			orderInDay.forEach(function(item,index){
+				console.log(item.Status);
 				if(item.Status===4){
 					totalMoneyInDay+=item.Total;
 					numOfDeliveredOrder++;
@@ -743,7 +817,7 @@ app.get('/api/getshipperdatareport/:_id',function(req,res){
 app.get('/api/feedbacks', function(req, res){
 	Feedback.getFeedbacks(function(err, feedbacks){
 		if(err){
-			throw err;
+			res.status(500).send('err');
 		}
 		res.json(feedbacks);
 	});
@@ -758,7 +832,7 @@ app.post('/api/feedbacks',function (req, res, next) {
 			var feedback = JSON.parse(jsonString)
 			Feedback.addFeedback(feedback, function(err, feedback){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(feedback);
 			});
@@ -774,25 +848,11 @@ app.put('/api/feedbacks/:_id', function(req, res){
 			var id = req.params._id;
 			Feedback.removeFeedback(id, null, {}, function(err, feedback){
 				if(err){
-					throw err;
+					res.status(500).send('err');
 				}
 				res.json(feedback);
 			});
         });
-});
-
-
-var j = schedule.scheduleJob('17 * * * *', function(){
-  console.log('The answer to life, the universe, and everything!');
-  User.getUsers(function(err,users){
-	  if(err){
-		  throw err;
-	  }
-	  users.forEach(function(user,index){
-		  console.log(user.UserName);
-	  });
-
-  })
 });
 
 // Run on server
