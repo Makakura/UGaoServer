@@ -396,7 +396,7 @@ app.post('/api/orders', function(req, res){
 							body: {
 								'notification':{
 									'title':'Thông báo', 
-									'body':'Có đơn hang mới',   
+									'body':'Có đơn hàng mới',   
 									'sound':'default',  
 									'click_action':'FCM_PLUGIN_ACTIVITY',   
 									'icon':'fcm_push_icon'   
