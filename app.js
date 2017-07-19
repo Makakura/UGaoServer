@@ -1,3 +1,6 @@
+// Host: 1: don hang moi
+// Cilent: 2: huy don hang, 4: het gao, 5: con gao, 6 thong bao, 0 don hang da nhan chuyen di
+//Shipper: 3: don hang can giao
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -52,9 +55,9 @@ app.post('/api/hetgao', (req, res) => {
 				},
 				"data":
 				{
-					"type": "2"
+					"type": "4"
 				},
-				"to":"/topics/client", 
+				"to":"dbTSeOhrevA:APA91bFIfLvE29qaj7q1BTB_x1kgI3j2eIvTudmPmujd5qgD00o9TU2GqMZ7IBAjOcQEFApTdat8dtDvpeFHMVwT3x8BDP0mAFI4HalaxZPGZnTuAr4YhOOIPIcgKHfmzFysW962dFPu", 
 				"priority":"high",  
 				"restricted_package_name":""  
 			},
@@ -87,9 +90,9 @@ app.post('/api/congao', (req, res) => {
 				},
 				"data":
 				{
-					"type": "3"
+					"type": "5"
 				},
-				"to":"/topics/client", 
+				"to":"dbTSeOhrevA:APA91bFIfLvE29qaj7q1BTB_x1kgI3j2eIvTudmPmujd5qgD00o9TU2GqMZ7IBAjOcQEFApTdat8dtDvpeFHMVwT3x8BDP0mAFI4HalaxZPGZnTuAr4YhOOIPIcgKHfmzFysW962dFPu", 
 				"priority":"high",  
 				"restricted_package_name":""  
 			},
@@ -379,7 +382,6 @@ app.post('/api/orders', function(req, res){
 				if(orders.length>10){
 					console.log(orders.length);
 					res.status(400).send({ error: "Bạn vẫn còn "+orders.length+" đơn hàng đang chờ, vui lòng đợi các đơn hàng trước được xác nhận" });
-					//res.json({'err':"Bạn vẫn còn đơn hàng đang chờ, vui lòng đợi các đơn hàng trước được xác nhận" });
 				}
 				else{
 					Order.addOrder(order, function(err, order){
@@ -583,7 +585,6 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 				if(err){
 					 res.status(500).send('err');
 				}
-				console.log(orderTemp.Status+"----"+orderWillUpdate.Status);
 				if(orderWillUpdate.Status!=orderTemp.Status){
 					Order.updateOrderStatus(id, orderTemp, {}, function(err, orderTemp){
 						if(err){
@@ -591,10 +592,10 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 						}
 						res.json(orderTemp);
 					});
-					if(orderTemp.Status ==3){
+					if(orderTemp.Status == 3){
 						if(orderTemp.OwnerId!="Default_User"){
 							User.getUserById(orderTemp.OwnerId, function(err, user){
-								pushToken=user.PushToken;
+								pushToken = user.PushToken;
 								console.log(pushToken);
 								// Push Nor
 								var requestify = require('requestify');
@@ -609,7 +610,7 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 											'icon':'fcm_push_icon'   
 										},
 										'data':{
-											'type': '1',
+											'type': '0',
 											'id':orderTemp._id,
 										},
 											'to': pushToken, 
@@ -632,7 +633,6 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 						
 					}
 					else  if(orderTemp.Status == 2){
-						console.log("push nor to deliver");
 						var requestify = require('requestify');
 						requestify.request('https://fcm.googleapis.com/fcm/send', {
 							method: 'POST',
@@ -645,7 +645,7 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 									'icon':'fcm_push_icon'   
 								},
 								'data':{
-									'type': '1',
+									'type': '3',
 									'id':orderTemp._id,
 								},
 									'to': '/topics/shipper',
@@ -680,7 +680,7 @@ app.put('/api/ordersStatus/:_id', function(req, res){
 											'icon':'fcm_push_icon'   
 										},
 										'data':{
-											'type': '1',
+											'type': '2',
 											'id':orderTemp._id,
 										},
 											'to': pushToken, 

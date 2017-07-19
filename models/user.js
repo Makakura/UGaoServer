@@ -13,8 +13,7 @@ var userSchema = mongoose.Schema({
     Type: Number, // Role
     isActive: Boolean,
     DayUse: Number,
-    DayRemain: Number,
-    isDeleteFlag: Boolean
+    DayRemain: Number
 });
 
 var User = module.exports = mongoose.model('User', userSchema);

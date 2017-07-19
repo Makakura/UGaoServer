@@ -13,7 +13,6 @@ var orderSchema = mongoose.Schema({
 	Note: String,
 	OrderDate: Date,
     OrderSuccessDate: Date,
-	
 });
 
 var Order = module.exports = mongoose.model('Order', orderSchema);
