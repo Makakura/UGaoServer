@@ -460,7 +460,7 @@ app.put('/api/orders/:_id', function(req, res){
 									'icon':'fcm_push_icon'   
 								},
 								'data':{
-									'type': '1',
+									'type': '0',
 									'id':orderTemp._id,
 								},
 									'to': pushToken, 
@@ -496,7 +496,7 @@ app.put('/api/orders/:_id', function(req, res){
 							'icon':'fcm_push_icon'   
 						},
 						'data':{
-							'type': '1',
+							'type': '3',
 							'id':orderTemp._id,
 						},
 							'to': '/topics/shipper',
@@ -531,7 +531,7 @@ app.put('/api/orders/:_id', function(req, res){
 									'icon':'fcm_push_icon'   
 								},
 								'data':{
-									'type': '1',
+									'type': '2',
 									'id':orderTemp._id,
 								},
 									'to': pushToken, 
