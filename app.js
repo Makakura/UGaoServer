@@ -57,7 +57,7 @@ app.post('/api/hetgao', (req, res) => {
 				{
 					"type": "4"
 				},
-				"to":"dbTSeOhrevA:APA91bFIfLvE29qaj7q1BTB_x1kgI3j2eIvTudmPmujd5qgD00o9TU2GqMZ7IBAjOcQEFApTdat8dtDvpeFHMVwT3x8BDP0mAFI4HalaxZPGZnTuAr4YhOOIPIcgKHfmzFysW962dFPu", 
+				"to":"/topics/user1", 
 				"priority":"high",  
 				"restricted_package_name":""  
 			},
@@ -92,7 +92,7 @@ app.post('/api/congao', (req, res) => {
 				{
 					"type": "5"
 				},
-				"to":"dbTSeOhrevA:APA91bFIfLvE29qaj7q1BTB_x1kgI3j2eIvTudmPmujd5qgD00o9TU2GqMZ7IBAjOcQEFApTdat8dtDvpeFHMVwT3x8BDP0mAFI4HalaxZPGZnTuAr4YhOOIPIcgKHfmzFysW962dFPu", 
+				"to":"/topics/user1", 
 				"priority":"high",  
 				"restricted_package_name":""  
 			},
